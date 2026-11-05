@@ -73,8 +73,8 @@ brew untap jimicat/sexlog
 发布新版本：
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 推送普通分支不会创建 Release。也可以在 Actions 页面手动触发 `Release` 工作流，仅构建并保留工作流产物用于验证，不会发布 Release。
