@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>sexlog · 仪表盘</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b0f15'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23fb7185'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23fb7185' stroke-opacity='.35' stroke-width='3'/%3E%3C/svg%3E">
+  <style>/*__SEXLOG_STYLES__*/</style>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span></div>
+        <div class="brand-copy">
+          <h1>sexlog</h1>
+          <p>私密生活数据面板 · 仅存储在本机</p>
+        </div>
+      </div>
+      <p class="stamp">
+        统计截至 <strong>__SEXLOG_TODAY__</strong>
+        <span>生成于 __SEXLOG_GENERATED_AT__ · 共 __SEXLOG_RECORD_COUNT__ 条记录</span>
+      </p>
+    </header>
+
+    <div class="filter-bar" role="region" aria-label="数据筛选">
+      <div class="filters">
+        <label class="field">
+          <span>范围</span>
+          <select id="filter-range">
+            <option value="3m">近 3 个月</option>
+            <option value="12m" selected>近 12 个月</option>
+            <option value="all">全部</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>类型</span>
+          <select id="filter-kind">
+            <option value="all">全部类型</option>
+            <option value="partner">伴侣</option>
+            <option value="solo">独自</option>
+            <option value="other">其他</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>伴侣</span>
+          <select id="filter-partner">
+            <option value="all">全部伴侣</option>
+          </select>
+        </label>
+      </div>
+      <div class="filter-meta">
+        <span id="filter-count">0 条记录</span>
+        <span class="sep" aria-hidden="true"></span>
+        <span id="filter-span"></span>
+      </div>
+    </div>
+
+    <main>
+      <section class="kpis" aria-label="核心指标">
+        <article class="kpi kpi-rose">
+          <div class="kpi-top"><span class="kpi-label">次数</span><span class="kpi-dot"></span></div>
+          <p class="kpi-value"><span id="kpi-count">—</span><small>次</small></p>
+          <p class="kpi-sub" id="kpi-count-sub">筛选范围内</p>
+        </article>
+        <article class="kpi kpi-blue">
+          <div class="kpi-top"><span class="kpi-label">每周频率</span><span class="kpi-dot"></span></div>
+          <p class="kpi-value"><span id="kpi-weekly">—</span><small>次/周</small></p>
+          <p class="kpi-sub" id="kpi-weekly-sub">按所选时间范围</p>
+        </article>
+        <article class="kpi kpi-amber">
+          <div class="kpi-top"><span class="kpi-label">平均满意度</span><span class="kpi-dot"></span></div>
+          <p class="kpi-value"><span id="kpi-satisfaction">—</span><small>/ 5</small></p>
+          <p class="kpi-sub" id="kpi-satisfaction-sub">满分 5 分</p>
+        </article>
+        <article class="kpi kpi-teal">
+          <div class="kpi-top"><span class="kpi-label">平均时长</span><span class="kpi-dot"></span></div>
+          <p class="kpi-value"><span id="kpi-duration">—</span><small>分钟</small></p>
+          <p class="kpi-sub" id="kpi-duration-sub">单次平均</p>
+        </article>
+        <article class="kpi kpi-violet">
+          <div class="kpi-top"><span class="kpi-label">平均间隔</span><span class="kpi-dot"></span></div>
+          <p class="kpi-value"><span id="kpi-interval">—</span><small>天</small></p>
+          <p class="kpi-sub" id="kpi-interval-sub">相邻两次之间</p>
+        </article>
+        <article class="kpi kpi-orange">
+          <div class="kpi-top"><span class="kpi-label">措施使用率</span><span class="kpi-dot"></span></div>
+          <p class="kpi-value"><span id="kpi-protection">—</span><small>%</small></p>
+          <p class="kpi-sub" id="kpi-protection-sub">伴侣场次</p>
+        </article>
+      </section>
+
+      <div class="grid">
+        <section class="card span-7">
+          <header class="card-head">
+            <div><h2>月度次数</h2><p id="monthly-sub">按自然月统计</p></div>
+            <span class="badge" id="monthly-total">—</span>
+          </header>
+          <div class="chart scroll-x" id="monthly-chart"></div>
+        </section>
+
+        <section class="card span-5">
+          <header class="card-head">
+            <div><h2>满意度分布</h2><p id="satisfaction-sub">1 至 5 分</p></div>
+            <span class="badge" id="satisfaction-avg">—</span>
+          </header>
+          <div class="chart" id="satisfaction-chart"></div>
+        </section>
+
+        <section class="card span-5">
+          <header class="card-head">
+            <div><h2>星期 × 时段</h2><p id="weekday-sub">按记录时间分布</p></div>
+            <span class="badge" id="weekday-peak">—</span>
+          </header>
+          <div class="chart" id="weekday-chart"></div>
+        </section>
+
+        <section class="card span-7">
+          <header class="card-head">
+            <div><h2>时长趋势</h2><p id="duration-sub">分钟 · 虚线为平均值</p></div>
+            <span class="badge" id="duration-badge">—</span>
+          </header>
+          <div class="chart" id="duration-chart"></div>
+        </section>
+
+        <section class="card span-5">
+          <header class="card-head">
+            <div><h2>伴侣与类型</h2><p id="partner-sub">类型构成与伴侣分布</p></div>
+            <span class="badge" id="partner-badge">—</span>
+          </header>
+          <div class="chart" id="partner-chart"></div>
+        </section>
+
+        <section class="card span-7">
+          <header class="card-head">
+            <div><h2>最近 12 周</h2><p id="heatmap-sub">最近 84 天的记录密度</p></div>
+            <span class="badge" id="heatmap-total">—</span>
+          </header>
+          <div class="chart" id="heatmap-chart"></div>
+        </section>
+
+        <section class="card span-4">
+          <header class="card-head">
+            <div><h2>行为标签</h2><p id="acts-sub">出现频次</p></div>
+            <span class="badge" id="acts-count">—</span>
+          </header>
+          <div class="chart" id="acts-chart"></div>
+        </section>
+
+        <section class="card span-8">
+          <header class="card-head">
+            <div><h2>最近记录</h2><p id="recent-sub">按时间倒序</p></div>
+            <span class="badge" id="recent-count">—</span>
+          </header>
+          <div class="chart" id="recent-chart"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">数据仅存储在本机 · 由 sexlog 生成</footer>
+  </div>
+
+  <script id="sexlog-data" type="application/json">__SEXLOG_DATA__</script>
+  <script>/*__SEXLOG_APP__*/</script>
+</body>
+</html>
