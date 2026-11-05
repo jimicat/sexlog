@@ -31,6 +31,35 @@ cargo build --release
 cargo install --path .
 ```
 
+## 自动构建与发布
+
+仓库内置 GitHub Actions 工作流 [.github/workflows/release.yml](.github/workflows/release.yml)，推送 `v*` 标签后会自动：
+
+1. 在 5 种平台上编译 release 二进制
+2. 打包并生成 SHA-256 校验文件
+3. 创建 GitHub Release 并上传全部产物
+
+| 平台 | Rust target | 产物 |
+|---|---|---|
+| Linux x86_64 | `x86_64-unknown-linux-gnu` | `.tar.gz` |
+| Linux ARM64 | `aarch64-unknown-linux-gnu` | `.tar.gz` |
+| macOS Intel | `x86_64-apple-darwin` | `.tar.gz` |
+| macOS Apple Silicon | `aarch64-apple-darwin` | `.tar.gz` |
+| Windows x86_64 | `x86_64-pc-windows-msvc` | `.zip` |
+
+产物命名格式为 `sexlog-<版本>-<target>.tar.gz`（Windows 为 `.zip`），压缩包内包含可执行文件、`README.md` 和 `LICENSE`。
+
+发布新版本：
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+推送普通分支不会创建 Release。也可以在 Actions 页面手动触发 `Release` 工作流，仅构建并保留工作流产物用于验证，不会发布 Release。
+
+> Linux 产物基于 Ubuntu 22.04 构建，需要 glibc 2.35 或更高版本。
+
 ## 快速开始
 
 ```bash
