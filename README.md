@@ -31,6 +31,26 @@ cargo build --release
 cargo install --path .
 ```
 
+### Homebrew（macOS / Linux）
+
+仓库同时作为 Homebrew tap 提供预编译安装：
+
+```bash
+brew tap jimicat/sexlog https://github.com/jimicat/sexlog.git
+brew trust jimicat/sexlog
+brew install sexlog
+```
+
+`brew trust` 用于允许加载第三方 tap。升级与卸载：
+
+```bash
+brew update
+brew upgrade sexlog
+
+brew uninstall sexlog
+brew untap jimicat/sexlog
+```
+
 ## 自动构建与发布
 
 仓库内置 GitHub Actions 工作流 [.github/workflows/release.yml](.github/workflows/release.yml)，推送 `v*` 标签后会自动：
@@ -59,6 +79,8 @@ git push origin v0.1.0
 推送普通分支不会创建 Release。也可以在 Actions 页面手动触发 `Release` 工作流，仅构建并保留工作流产物用于验证，不会发布 Release。
 
 > Linux 产物基于 Ubuntu 22.04 构建，需要 glibc 2.35 或更高版本。
+
+发布新版本后，需要同步更新 [Formula/sexlog.rb](Formula/sexlog.rb) 中的 `version` 和四个平台的 `sha256`，Homebrew 才能安装新版本。
 
 ## 快速开始
 
