@@ -46,7 +46,7 @@
   const TODAY = parseDateKey(payload.today);
   TODAY.setHours(23, 59, 59, 999);
 
-  const state = { range: '12m', kind: 'all', partner: 'all' };
+  const state = { range: '1y', kind: 'all', partner: 'all' };
 
   function $(id) {
     return document.getElementById(id);
@@ -144,8 +144,21 @@
   }
 
   function rangeStart() {
-    if (state.range === 'all') return null;
-    return minusMonths(TODAY, state.range === '3m' ? 3 : 12);
+    switch (state.range) {
+      case '7d': {
+        const start = addDays(TODAY, -6);
+        start.setHours(0, 0, 0, 0);
+        return start;
+      }
+      case '1m':
+        return minusMonths(TODAY, 1);
+      case '6m':
+        return minusMonths(TODAY, 6);
+      case '1y':
+        return minusMonths(TODAY, 12);
+      default:
+        return null;
+    }
   }
 
   function filtered(applyRange = true) {
@@ -208,7 +221,7 @@
     renderWeekday(records);
     renderDuration(records);
     renderPartner(records);
-    renderHeatmap(filtered(false));
+    renderHeatmap(records);
     renderActs(records);
     renderRecent(records);
   }
@@ -244,7 +257,7 @@
     let weekly = null;
     if (hasData) {
       const start = rangeStart() || records[0].dateObj;
-      const days = Math.max(7, Math.ceil((TODAY - start) / DAY) + 1);
+      const days = Math.max(7, Math.floor((TODAY - start) / DAY) + 1);
       weekly = count / (days / 7);
     }
     setText('kpi-weekly', fmtRate(weekly));
@@ -327,12 +340,14 @@
 
     const totalCount = counts.reduce((sum, value) => sum + value, 0);
     const peak = Math.max(...counts);
+    const first = months[0];
+    const last = months[months.length - 1];
+    const firstLabel = `${first.getFullYear()}/${first.getMonth() + 1}`;
+    const lastLabel = `${last.getFullYear()}/${last.getMonth() + 1}`;
     setText('monthly-total', `${totalCount} 次`);
     setText(
       'monthly-sub',
-      peak > 0
-        ? `峰值 ${peak} 次 · ${months.length} 个月`
-        : `共 ${months.length} 个月`
+      `${firstLabel === lastLabel ? firstLabel : `${firstLabel} – ${lastLabel}`} · 共 ${months.length} 个月`
     );
 
     const width = Math.max(560, months.length * 40);
@@ -392,6 +407,8 @@
     const step = plotWidth / months.length;
     const barWidth = Math.min(30, step * 0.58);
     const labelEvery = Math.ceil(months.length / 12);
+    const multiYear =
+      months[0].getFullYear() !== months[months.length - 1].getFullYear();
 
     months.forEach((month, index) => {
       const barHeight = (counts[index] / yMax) * plotHeight;
@@ -421,13 +438,13 @@
         index % labelEvery === 0 ||
         index === months.length - 1
       ) {
-        const showYear =
-          months.length > 12
-            ? index === 0 || month.getMonth() === 0
-            : index === 0;
-        const label = showYear
-          ? `${month.getFullYear()}/${month.getMonth() + 1}`
-          : `${month.getMonth() + 1}月`;
+        const year = month.getFullYear();
+        const monthNumber = month.getMonth() + 1;
+        const label = multiYear
+          ? `${String(year).slice(2)}/${monthNumber}`
+          : index === 0
+            ? `${year}/${monthNumber}`
+            : `${monthNumber}月`;
         svgText(
           svg,
           x + barWidth / 2,
@@ -874,12 +891,24 @@
   function renderHeatmap(records) {
     const chart = $('heatmap-chart');
 
+    const windowStart = rangeStart() || (records.length ? records[0].dateObj : TODAY);
+    const startDay = new Date(windowStart);
+    startDay.setHours(0, 0, 0, 0);
     const todayWeekday = (TODAY.getDay() + 6) % 7;
     const thisMonday = new Date(TODAY);
     thisMonday.setDate(thisMonday.getDate() - todayWeekday);
     thisMonday.setHours(0, 0, 0, 0);
-    const start = addDays(thisMonday, -11 * 7);
-    const startKey = dateKey(start);
+    const startWeekday = (startDay.getDay() + 6) % 7;
+    const firstMonday = addDays(startDay, -startWeekday);
+    const weekCount = Math.max(
+      1,
+      Math.round((thisMonday - firstMonday) / DAY / 7) + 1
+    );
+    const startKey = dateKey(startDay);
+    const cellSize = weekCount > 30 ? 9 : weekCount > 18 ? 14 : 20;
+    const cellGap = weekCount > 30 ? 2 : weekCount > 18 ? 3 : 5;
+    chart.style.setProperty('--cal-size', `${cellSize}px`);
+    chart.style.setProperty('--cal-gap', `${cellGap}px`);
 
     const counts = new Map();
     for (const record of records) {
@@ -888,8 +917,8 @@
     }
 
     const weekMondays = [];
-    for (let week = 0; week < 12; week += 1) {
-      weekMondays.push(addDays(start, week * 7));
+    for (let week = 0; week < weekCount; week += 1) {
+      weekMondays.push(addDays(firstMonday, week * 7));
     }
 
     const months = [];
@@ -909,8 +938,9 @@
     });
 
     const monthLabels = el('div', 'calendar-months');
+    monthLabels.style.gridTemplateColumns = `repeat(${weekCount}, ${cellSize}px)`;
     months.forEach((month, index) => {
-      const end = index + 1 < months.length ? months[index + 1].start : 12;
+      const end = index + 1 < months.length ? months[index + 1].start : weekCount;
       const label = el('span', '', month.label);
       label.style.gridColumn = `${month.start + 1} / span ${end - month.start}`;
       monthLabels.appendChild(label);
@@ -929,6 +959,12 @@
         if (key > payload.today) {
           cell.classList.add('future');
           cell.title = `${date.getFullYear()}-${key.slice(5)} · 未到`;
+          weeks.appendChild(cell);
+          continue;
+        }
+        if (key < startKey) {
+          cell.classList.add('future');
+          cell.title = `${date.getFullYear()}-${key.slice(5)} · 范围外`;
           weeks.appendChild(cell);
           continue;
         }
@@ -974,12 +1010,23 @@
     wrapper.appendChild(calendar);
     wrapper.appendChild(legend);
 
+    const rangeLabel =
+      state.range === 'all'
+        ? `全部 ${weekCount} 周`
+        : `最近 ${weekCount} 周`;
+    const visibleStart = startDay > firstMonday ? startDay : firstMonday;
+    const sameYear = visibleStart.getFullYear() === TODAY.getFullYear();
+    const formatDay = (date) =>
+      sameYear
+        ? `${date.getMonth() + 1}/${date.getDate()}`
+        : `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+    setText('heatmap-title', rangeLabel);
     setText('heatmap-total', `${visibleTotal} 次`);
     setText(
       'heatmap-sub',
       visibleTotal
-        ? `活跃 ${activeDays} 天 · 最近 84 天`
-        : '最近 12 周暂无记录'
+        ? `活跃 ${activeDays} 天 · ${formatDay(visibleStart)} – ${formatDay(TODAY)}`
+        : `${rangeLabel}暂无记录`
     );
 
     clear(chart);

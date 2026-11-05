@@ -2,6 +2,7 @@ use chrono::{NaiveDate, NaiveTime};
 use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 
+use crate::analytics::RangeFilter;
 use crate::model::{self, Kind};
 
 const EXAMPLES: &str = "\
@@ -10,6 +11,7 @@ const EXAMPLES: &str = "\
   sexlog add --date 2026-11-05 --time 22:30 --kind partner --partner A \\
     --acts \"前戏,插入\" --protection yes --orgasms 1 --satisfaction 5 --duration 40
   sexlog list --limit 10
+  sexlog tui
   sexlog report
   sexlog serve --port 8787";
 
@@ -39,6 +41,8 @@ pub enum Command {
     Log,
     /// 查看最近记录
     List(ListArgs),
+    /// 在终端中查看交互式数据看板
+    Tui(TuiArgs),
     /// 生成静态仪表盘
     Report,
     /// 启动本地 Web 服务器查看仪表盘
@@ -105,6 +109,21 @@ pub struct ListArgs {
         value_parser = clap::value_parser!(u32).range(1..=500)
     )]
     pub limit: u32,
+}
+
+#[derive(Debug, Args)]
+pub struct TuiArgs {
+    /// 初始时间范围：7d / 1m / 6m / 1y / all
+    #[arg(long, value_enum, default_value = "1y")]
+    pub range: RangeFilter,
+
+    /// 初始类型筛选：partner / solo / other
+    #[arg(long, value_enum)]
+    pub kind: Option<Kind>,
+
+    /// 初始伴侣筛选，__none__ 表示未指定
+    #[arg(long, value_name = "NAME")]
+    pub partner: Option<String>,
 }
 
 #[derive(Debug, Args)]

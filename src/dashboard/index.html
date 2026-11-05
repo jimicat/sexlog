@@ -29,8 +29,10 @@
         <label class="field">
           <span>范围</span>
           <select id="filter-range">
-            <option value="3m">近 3 个月</option>
-            <option value="12m" selected>近 12 个月</option>
+            <option value="7d">近 7 天</option>
+            <option value="1m">近 1 个月</option>
+            <option value="6m">近半年</option>
+            <option value="1y" selected>近 1 年</option>
             <option value="all">全部</option>
           </select>
         </label>
@@ -134,10 +136,10 @@
 
         <section class="card span-7">
           <header class="card-head">
-            <div><h2>最近 12 周</h2><p id="heatmap-sub">最近 84 天的记录密度</p></div>
+            <div><h2 id="heatmap-title">日期热力图</h2><p id="heatmap-sub">记录密度</p></div>
             <span class="badge" id="heatmap-total">—</span>
           </header>
-          <div class="chart" id="heatmap-chart"></div>
+          <div class="chart scroll-x" id="heatmap-chart"></div>
         </section>
 
         <section class="card span-4">

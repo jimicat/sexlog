@@ -1,3 +1,4 @@
+mod analytics;
 mod cli;
 mod commands;
 mod config;
@@ -6,6 +7,7 @@ mod interactive;
 mod model;
 mod report;
 mod server;
+mod tui;
 mod util;
 
 use anyhow::Result;
@@ -34,6 +36,7 @@ fn run() -> Result<()> {
         Command::Add(args) => commands::add(args, &settings),
         Command::Log => commands::log(&settings),
         Command::List(args) => commands::list(args, &settings),
+        Command::Tui(args) => commands::tui(args, &settings),
         Command::Report => commands::report(&settings),
         Command::Serve(args) => commands::serve(args, &settings),
         Command::Config(args) => commands::config(args, &settings),

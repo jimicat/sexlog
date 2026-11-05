@@ -1,13 +1,14 @@
 use anyhow::Result;
 use chrono::{Local, Timelike};
 
-use crate::cli::{AddArgs, ConfigArgs, ListArgs, ServeArgs};
+use crate::cli::{AddArgs, ConfigArgs, ListArgs, ServeArgs, TuiArgs};
 use crate::config::Settings;
 use crate::db::Store;
 use crate::interactive;
 use crate::model::{Kind, NewSession};
 use crate::report;
 use crate::server;
+use crate::tui;
 use crate::util::format_size;
 
 pub fn add(args: AddArgs, settings: &Settings) -> Result<()> {
@@ -93,6 +94,11 @@ pub fn list(args: ListArgs, settings: &Settings) -> Result<()> {
         println!();
     }
     Ok(())
+}
+
+pub fn tui(args: TuiArgs, settings: &Settings) -> Result<()> {
+    let store = Store::open(&settings.db_file)?;
+    tui::run(store.all()?, args)
 }
 
 pub fn report(settings: &Settings) -> Result<()> {
