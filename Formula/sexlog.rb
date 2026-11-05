@@ -1,26 +1,26 @@
 class Sexlog < Formula
   desc "Local, private sex-life logging CLI with a static dashboard"
   homepage "https://github.com/jimicat/sexlog"
-  version "0.1.0"
+  version "0.2.0"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/jimicat/sexlog/releases/download/v#{version}/sexlog-v#{version}-aarch64-apple-darwin.tar.gz"
-      sha256 "894d9ba9904ca3d4fbb5faba034ec075576b06d3d460b377c254053c8cbec77f"
+      sha256 "5a5edcb81ca42626d729b9a7f73c165f222d153f52917f52915b18fc7d88098c"
     else
       url "https://github.com/jimicat/sexlog/releases/download/v#{version}/sexlog-v#{version}-x86_64-apple-darwin.tar.gz"
-      sha256 "1299e88dc8216d7fee99ac1f2a7bd54b03ec10521d9dd5eaaedadf081dcd3d4b"
+      sha256 "40c0fa6b7788c71e760795cf0be375e3a349d6e68cbdc70ee162b3364418a657"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
       url "https://github.com/jimicat/sexlog/releases/download/v#{version}/sexlog-v#{version}-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "229845813513a1c851f429d3034ed14d0519d7b55067a3ff12f6e666d3979795"
+      sha256 "5b5b405d5a831d0f935329d5d21c9186e1021c7e71202210160f860035da63c5"
     else
       url "https://github.com/jimicat/sexlog/releases/download/v#{version}/sexlog-v#{version}-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "a730a40a364bb519da4a77620b19232db6afc9ad297f6df445a400e3b0f0ccea"
+      sha256 "ac942634cdb808452396d69f3b8290653e1f390a0c91b9737539e884a86358ee"
     end
   end
 
